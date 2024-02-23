@@ -1,0 +1,187 @@
+import java.io.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+// Classe para representar um evento
+class Evento {
+    private String nome;
+    private String endereco;
+    private String categoria;
+    private LocalDateTime horario;
+    private String descricao;
+
+    // Construtor
+    public Evento(String nome, String endereco, String categoria, LocalDateTime horario, String descricao) {
+        this.nome = nome;
+        this.endereco = endereco;
+        this.categoria = categoria;
+        this.horario = horario;
+        this.descricao = descricao;
+    }
+
+    // Getters
+    public String getNome() {
+        return nome;
+    }
+
+    public String getEndereco() {
+        return endereco;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public LocalDateTime getHorario() {
+        return horario;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    // Método para formatar o horário
+    public String formatarHorario() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        return horario.format(formatter);
+    }
+}
+
+// Classe para representar um usuário
+class Usuario {
+    private String nome;
+    private String email;
+    private String cidade;
+
+    // Construtor
+    public Usuario(String nome, String email, String cidade) {
+        this.nome = nome;
+        this.email = email;
+        this.cidade = cidade;
+    }
+
+    // Getters
+    public String getNome() {
+        return nome;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getCidade() {
+        return cidade;
+    }
+}
+
+// Classe para gerenciar os eventos
+class GerenciadorEventos {
+    private List<Evento> eventos;
+
+    // Construtor
+    public GerenciadorEventos() {
+        eventos = new ArrayList<>();
+    }
+
+    // Método para adicionar um evento
+    public void adicionarEvento(Evento evento) {
+        eventos.add(evento);
+    }
+
+    // Método para listar todos os eventos
+    public void listarEventos() {
+        for (Evento evento : eventos) {
+            System.out.println("Nome: " + evento.getNome());
+            System.out.println("Endereço: " + evento.getEndereco());
+            System.out.println("Categoria: " + evento.getCategoria());
+            System.out.println("Horário: " + evento.formatarHorario());
+            System.out.println("Descrição: " + evento.getDescricao());
+            System.out.println();
+        }
+    }
+    
+    // Método para carregar eventos de um arquivo
+    public void carregarEventos(String arquivo) {
+        try (BufferedReader br = new BufferedReader(new FileReader(arquivo))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(",");
+                String nome = parts[0];
+                String endereco = parts[1];
+                String categoria = parts[2];
+                LocalDateTime horario = LocalDateTime.parse(parts[3], DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+                String descricao = parts[4];
+                eventos.add(new Evento(nome, endereco, categoria, horario, descricao));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Método para salvar eventos em um arquivo
+    public void salvarEventos(String arquivo) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(arquivo))) {
+            for (Evento evento : eventos) {
+                bw.write(evento.getNome() + "," + evento.getEndereco() + "," +
+                         evento.getCategoria() + "," + evento.formatarHorario() + "," + evento.getDescricao());
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+// Classe principal
+public class Main {
+    public static void main(String[] args) {
+        GerenciadorEventos gerenciador = new GerenciadorEventos();
+        gerenciador.carregarEventos("events.data"); // Carregar eventos do arquivo
+
+        Scanner scanner = new Scanner(System.in);
+
+        // Menu principal
+        while (true) {
+            System.out.println("1. Cadastrar Evento");
+            System.out.println("2. Listar Eventos");
+            System.out.println("3. Sair");
+            System.out.print("Escolha uma opção: ");
+            int opcao = scanner.nextInt();
+            scanner.nextLine(); // Limpar o buffer do scanner
+            
+            switch (opcao) {
+                case 1:
+                    System.out.println("Cadastrar Evento:");
+                    System.out.print("Nome: ");
+                    String nome = scanner.nextLine();
+                    System.out.print("Endereço: ");
+                    String endereco = scanner.nextLine();
+                    System.out.print("Categoria: ");
+                    String categoria = scanner.nextLine();
+                    System.out.print("Horário (dd/MM/yyyy HH:mm): ");
+                    LocalDateTime horario = LocalDateTime.parse(scanner.nextLine(), DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+                    System.out.print("Descrição: ");
+                    String descricao = scanner.nextLine();
+
+                    Evento evento = new Evento(nome, endereco, categoria, horario, descricao);
+                    gerenciador.adicionarEvento(evento);
+                    gerenciador.salvarEventos("events.data"); // Salvar eventos no arquivo
+                    break;
+                case 2:
+                    System.out.println("Lista de Eventos:");
+                    gerenciador.listarEventos();
+                    break;
+                case 3:
+                    System.out.println("Saindo...");
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Opção inválida!");
+                    break;
+            }
+        }
+    }
+}
